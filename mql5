@@ -1,0 +1,69 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                   Super Helper  |
+//|                                   Developed by Forex Robot Easy Team |
+//|                                              https://forexroboteasy.com |
+//+------------------------------------------------------------------+
+
+// Indicator Signal Settings
+input string IndicatorName = 'Indicator_Name';
+input int SubwindowNumber = 0;
+input int BuySignalBuffer = 0;
+input int SellSignalBuffer = 1;
+
+// Connecting the Indicator
+int signalArrowBuffer = iCustom(_Symbol, _Period, IndicatorName, SubwindowNumber);
+
+// Trading Functions
+void OnTick()
+{
+   double maValue = iMA(_Symbol, _Period, MAPeriod, MAShift, MODE_SMA, PRICE_CLOSE, 0);
+   
+   if (maValue == 0)
+   {
+      if (SignalBuy())
+         OpenBuyOrder();
+      else if (SignalSell())
+         OpenSellOrder();
+   }
+}
+
+bool SignalBuy()
+{
+   if (iBarShift(_Symbol, _Period, signalArrowBuffer, Time[0]) > 0)
+   {
+      double buySignal = iCustom(_Symbol, _Period, IndicatorName, BuySignalBuffer, 0);
+      if (buySignal != 0)
+         return true;
+   }
+   return false;
+}
+
+bool SignalSell()
+{
+   if (iBarShift(_Symbol, _Period, signalArrowBuffer, Time[0]) > 0)
+   {
+      double sellSignal = iCustom(_Symbol, _Period, IndicatorName, SellSignalBuffer, 0);
+      if (sellSignal != 0)
+         return true;
+   }
+   return false;
+}
+
+void OpenBuyOrder()
+{
+   double lotSize = 0.01;
+   double stopLoss = 100;
+   double takeProfit = 200;
+   
+   OrderSend(_Symbol, OP_BUY, lotSize, Ask, slippage, stopLoss, takeProfit, 'Buy Order', magicNumber, 0, clrGreen);
+}
+
+void OpenSellOrder()
+{
+   double lotSize = 0.01;
+   double stopLoss = 100;
+   double takeProfit = 200;
+   
+   OrderSend(_Symbol, OP_SELL, lotSize, Bid, slippage, stopLoss, takeProfit, 'Sell Order', magicNumber, 0, clrRed);
+}
